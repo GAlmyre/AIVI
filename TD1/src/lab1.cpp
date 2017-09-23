@@ -26,6 +26,7 @@
 #include "utils.hpp"
 #include <opencv2/highgui/highgui.hpp> //VideoCapture, imshow, imwrite, ...
 #include <opencv2/imgproc/imgproc.hpp> //cvtColor
+#include <queue>
 
 int main(int argc, char **argv)
 {
@@ -52,11 +53,13 @@ int main(int argc, char **argv)
   unsigned long frameNumber = 0;
 
   cv::namedWindow("MainWindow", 1);
-  cv::Mat previousFrame;
+  std::queue<cv::Mat> previousFrames;
 
   for ( ; ; ) {
     cv::Mat frameBGR;
     cv::Mat frameGray;
+    cv::Mat errorMat;
+    cv::Mat comparFrame;
 
     cap >> frameBGR;
     if (frameBGR.empty()) {
@@ -64,18 +67,21 @@ int main(int argc, char **argv)
     }
 
     cv::cvtColor(frameBGR, frameGray, CV_BGR2GRAY);
+    previousFrames.push(frameGray);
+    if (frameNumber > interFramesDistance) {
+      previousFrames.pop();
+      comparFrame = previousFrames.front();
+      std::cout << "MSE : " << computeMSE(frameGray, comparFrame) << std::endl;
+      //std::cout << "PSNR : " << computePSNR(frameGray, comparFrame) << std::endl;
+      displayableErrorImage(frameGray, comparFrame, errorMat);
 
-    if (frameNumber != 0) {
-      std::cout << "MSE : " << computeMSE(frameGray, previousFrame) << std::endl;
+      cv::imshow("MainWindow", errorMat);
     }
-
-    cv::imshow("MainWindow", frameGray);
 
     //cv::imwrite("SavedFrame"+std::to_string(frameNumber)+".png", frameGray);
 
     cv::waitKey(1);
     ++frameNumber;
-    previousFrame = frameGray;
   }
 
   return EXIT_SUCCESS;

@@ -4,6 +4,8 @@
 #include <opencv2/core/core.hpp>
 
 //compute error image
+extern void displayableErrorImage(const cv::Mat &im, const cv::Mat &imC, cv::Mat &imErr);
+
 //im & imC are input images, imErr is the output image
 extern void computeErrorImage(const cv::Mat &im, const cv::Mat &imC, cv::Mat &imErr);
 

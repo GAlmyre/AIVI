@@ -1,3 +1,0 @@
-/home/antoine/Travail/M2/AIVI/TP/tp2/Lab2_code/build/CMakeFiles/edit_cache.dir
-/home/antoine/Travail/M2/AIVI/TP/tp2/Lab2_code/build/CMakeFiles/rebuild_cache.dir
-/home/antoine/Travail/M2/AIVI/TP/tp2/Lab2_code/build/CMakeFiles/Lab2.dir

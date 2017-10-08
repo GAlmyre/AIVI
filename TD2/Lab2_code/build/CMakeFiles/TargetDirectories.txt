@@ -1,0 +1,3 @@
+/net/cremi/galmyre/Master2/AIVI/TD2/Lab2_code/build/CMakeFiles/rebuild_cache.dir
+/net/cremi/galmyre/Master2/AIVI/TD2/Lab2_code/build/CMakeFiles/edit_cache.dir
+/net/cremi/galmyre/Master2/AIVI/TD2/Lab2_code/build/CMakeFiles/Lab2.dir

@@ -27,6 +27,7 @@
 #include <opencv2/highgui/highgui.hpp> //VideoCapture, imshow, imwrite, ...
 #include <opencv2/imgproc/imgproc.hpp> //cvtColor
 #include <queue>
+#include <fstream>
 
 int main(int argc, char **argv)
 {
@@ -50,11 +51,21 @@ int main(int argc, char **argv)
     return -1;
   }
 
+  // Prepare the output file to give to gnuplot as input 
+  std::ofstream MSEFile("MSE.txt");
+  std::ofstream PSNRFile("PSNR.txt");
+  std::ofstream EntropyFile("Entropy.txt");
+  if (!MSEFile.is_open() || !PSNRFile.is_open() || !EntropyFile.is_open())
+  {
+	std::cerr<<"Error: unable to open an ouput file"<<std::endl;
+    return EXIT_FAILURE; 
+  }
+  
   unsigned long frameNumber = 0;
 
-  cv::namedWindow("MainWindow", 1);
+  //cv::namedWindow("MainWindow", 1);
   std::queue<cv::Mat> previousFrames;
-
+  
   for ( ; ; ) {
     cv::Mat frameBGR;
     cv::Mat frameGray;
@@ -71,11 +82,14 @@ int main(int argc, char **argv)
     if (frameNumber > interFramesDistance) {
       previousFrames.pop();
       comparFrame = previousFrames.front();
-      std::cout << "MSE : " << computeMSE(frameGray, comparFrame) << std::endl;
+      //std::cout << "MSE : " << computeMSE(frameGray, comparFrame) << std::endl;
       //std::cout << "PSNR : " << computePSNR(frameGray, comparFrame) << std::endl;
+      MSEFile << frameNumber << " " << computeMSE(frameGray, comparFrame) << std::endl;
+      PSNRFile << frameNumber << " " << computePSNR(frameGray, comparFrame) << std::endl;
       displayableErrorImage(frameGray, comparFrame, errorMat);
+      EntropyFile << frameNumber << " " << computeEntropy(frameGray) << " " << computeEntropy(errorMat) << std::endl;
 
-      cv::imshow("MainWindow", errorMat);
+      //cv::imshow("MainWindow", errorMat);
     }
 
     //cv::imwrite("SavedFrame"+std::to_string(frameNumber)+".png", frameGray);
@@ -84,5 +98,8 @@ int main(int argc, char **argv)
     ++frameNumber;
   }
 
+  MSEFile.close();
+  PSNRFile.close();
+  EntropyFile.close();
   return EXIT_SUCCESS;
 }

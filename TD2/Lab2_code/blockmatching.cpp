@@ -87,7 +87,45 @@ void blockMatchingMono2(const cv::Mat &m1, const cv::Mat &m2,
   const int blockXCount = m1.cols / blockSize;
   const int blockYCount = m1.rows / blockSize;
 
-  //TODO : fill motionVectors
+	cv::Mat block1;
+	block1.create(blockSize, blockSize, CV_32SC2);
+	cv::Mat block2;
+	block2.create(blockSize, blockSize, CV_32SC2);
+	int bestI = 0, bestJ = 0;
+
+	// standard matching if vectors are not computed
+	if (motionVectors.empty()) {
+		blockMatchingMono(m1,m2,blockSize,windowSize,motionVectors);
+	}
+	else {
+		for (int i = 0; i < m1.rows-blockSize-1; i+=blockSize) {
+			for (int j = 0; j < m1.cols-blockSize-1; j+=blockSize) {
+
+				block1 = m1(cv::Rect(j,i,blockSize,blockSize));
+				double bestMSE = DBL_MAX;
+
+				for (int k = i-windowSize/2+blockSize/2; k < i+windowSize/2-blockSize-1+blockSize/2; k++) {
+					for (int l = j-windowSize/2+blockSize/2; l < j+windowSize/2-blockSize-1+blockSize/2; l++) {
+						// handles the edges
+						cv::Vec2i currentVector = motionVectors.at<cv::Vec2i>(i/blockSize, j/blockSize);
+						int kVec = k+currentVector(1);
+						int lVec = l+currentVector(0);
+						if (kVec >= 0 && kVec < m2.rows - blockSize-1 && lVec>= 0 && lVec < m2.cols - blockSize-1) {
+							block2 = m2(cv::Rect(l+currentVector(0),k+currentVector(1),blockSize,blockSize));
+							double currentMSE = computeMSE(block1, block2);
+
+							if (currentMSE < bestMSE) {
+								bestMSE = currentMSE;
+								bestI = kVec;
+								bestJ = lVec;
+							}
+						}
+					}
+				}
+				motionVectors.at<cv::Vec2i>(i/blockSize, j/blockSize) = cv::Vec2i(bestJ-j, bestI-i);
+			}
+		}
+	}
 
 }
 

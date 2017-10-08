@@ -22,8 +22,8 @@
 int
 main(int argc, char **argv)
 {
-  if(argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " video-filename distance-between-two-frames-for-prediction nbLevels" << std::endl;
+  if(argc != 6) {
+    std::cerr << "Usage: " << argv[0] << " video-filename distance-between-two-frames-for-prediction nbLevels blockSize windowSize" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -41,9 +41,18 @@ main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  const int blockSize = 8;
-  const int windowSize = 32;
-  //TODO: it would be better to pass these values as parameters
+  const int blockSize = atoi(argv[4]);
+  std::cout << "blockSize : "  << blockSize<< '\n';
+  if (blockSize != 4 && blockSize != 8 && blockSize != 16) {
+    std::cerr<<"Error: blockSize must be 4, 8 or 16"<<std::endl;
+    return EXIT_FAILURE;
+  }
+
+  const int windowSize = atoi(argv[5]);
+  if (windowSize <= 0) {
+    std::cerr<<"Error: windowSize must be a strictly positive integer"<<std::endl;
+    return EXIT_FAILURE;
+  }
 
   cv::VideoCapture cap;
   cap.open(videoFilename);
@@ -67,9 +76,9 @@ main(int argc, char **argv)
     }
 
     //save frame
-    std::stringstream ss;
+    /*std::stringstream ss;
     ss<<"frame_"<<std::setfill('0')<<std::setw(6)<<frameNumber<<".png";
-    cv::imwrite(ss.str(), frameBGR);
+    cv::imwrite(ss.str(), frameBGR);*/
 
     //convert from BGR to Y
     cv::Mat frameY;
@@ -108,12 +117,21 @@ main(int argc, char **argv)
       	std::vector<cv::Mat> levelsPrevY;
       	std::vector<cv::Mat> motionVectorsP;
       	blockMatchingMulti(frameY, prevY, blockSize, windowSize, nbLevels, levelsY, levelsPrevY, motionVectorsP);
+        cv::Mat frameYCopy = frameY.clone();
+        drawMVi(frameYCopy, motionVectorsP[0]);
+        cv::Mat YC;
+      	computeCompensatedImage(motionVectorsP[0], prevY, YC);
+        cv::imshow("vectors", frameYCopy);
+        cv::imshow("compensated", YC);
+        cv::waitKey(11);
 
-      	std::cout<<frameNumber;
+        /*MSE = computeMSE(frameYCopy, YC);
+        PSNR = computePSNR(MSE);
+        ENT = computeEntropy(YC);
+        computeErrorImage(frameYCopy, YC, errorFrame);
+        ENTe = computeEntropy(errorFrame);
+      	std::cout<<frameNumber;*/
       	for (int i=nbLevels-1; i>=0; --i) {
-
-      	  //TODO : compute measures  (& display images) ...
-
 
       	  std::cout<<" "<<MSE<<" "<<PSNR<<" "<<ENT<<" "<<ENTe;
       	}
